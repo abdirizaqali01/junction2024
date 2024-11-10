@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Street View with Toggle and 3D Model Overlay</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Material+Icons+Outlined&display=swap" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAY90-zf_NPHskJdzGKT06vEUPRO3Ux3M4&libraries=places"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        #controls {
+            text-align: center;
+            padding: 10px;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+        #map-container {
+            position: relative;
+            height: calc(100% - 60px); /* Adjusts to fit below the header */
+        }
+        #map, #street-view, #threejs-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #street-view {
+            display: none;
+        }
+        #threejs-canvas {
+            pointer-events: none;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header">
+            <a href="#default" class="logo">
+                <img src="companylogo.png" alt="CompanyLogo">
+            </a>
+            <div class="D-buttons-container">
+                <div class="D-buttons">
+                    <a href="#3d" id="button-3d" class="active">3D</a>
+                    <a href="#street" id="button-street">Street</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn" id="viewButton">
+                    <span class="material-icons-outlined">layers</span> Terrain View
+                </button>
+                <div class="dropdown-content">
+                    <a href="#terrain" onclick="changeView('Terrain View', 'layers')">
+                        <span class="material-icons-outlined">layers</span> Terrain View
+                    </a>
+                    <a href="#building" onclick="changeView('Building View', 'construction')">
+                        <span class="material-icons-outlined">construction</span> Building View
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div id="map-container">
+        <div id="controls">
+            <button onclick="toggleView()">Toggle Street View</button>
+        </div>
+        <div id="map"></div>
+        <div id="street-view"></div>
+        <canvas id="threejs-canvas"></canvas>
+    </div>
+
+    <script>
+        let map, panorama, streetViewVisible = true;
+        let scene, camera, renderer, model;
+
+        function initMap() {
+            const preciseLocation = { lat: 60.1893282, lng: 24.7417896 };
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: preciseLocation,
+                mapTypeId: "satellite"
+            });
+
+            panorama = new google.maps.StreetViewPanorama(
+                document.getElementById("street-view"), {
+                    position: preciseLocation,
+                    pov: { 
+                        heading: 77.42,
+                        pitch: 0
+                    },
+                    visible: true
+                }
+            );
+
+            map.setStreetView(panorama);
+            document.getElementById("map").style.display = "none";
+            document.getElementById("street-view").style.display = "block";
+
+            initThreeJS();
+            
+            panorama.addListener('pov_changed', () => {
+                if (camera) {
+                    updateCameraRotation();
+                }
+            });
+
+            panorama.addListener('position_changed', () => {
+                if (model) {
+                    updateModelPosition();
+                }
+            });
+        }
+
+        function toggleView() {
+            if (streetViewVisible) {
+                panorama.setVisible(false);
+                document.getElementById("street-view").style.display = "none";
+                document.getElementById("map").style.display = "block";
+                document.getElementById("threejs-canvas").style.display = "none";
+                streetViewVisible = false;
+            } else {
+                panorama.setVisible(true);
+                document.getElementById("map").style.display = "none";
+                document.getElementById("street-view").style.display = "block";
+                document.getElementById("threejs-canvas").style.display = "block";
+                streetViewVisible = true;
+            }
+        }
+
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(1, 2, 1);
+            scene.add(directionalLight);
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.6, 0);
+
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById("threejs-canvas"), 
+                alpha: true,
+                antialias: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+
+            const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
+            const groundMaterial = new THREE.MeshBasicMaterial({ 
+                visible: false 
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.1;
+            scene.add(ground);
+
+            const loader = new THREE.GLTFLoader();
+            loader.load(
+                '/3d models/stacked_floors_with_bases.glb', 
+                function(gltf) {
+                    model = gltf.scene;
+                    
+                    const bbox = new THREE.Box3().setFromObject(model);
+                    const modelHeight = bbox.max.y - bbox.min.y;
+                    
+                    const desiredHeight = 20;
+                    const scale = desiredHeight / modelHeight;
+                    model.scale.set(scale, scale, scale);
+                    
+                    model.position.set(0, 0, -25);
+                    
+                    model.rotation.x = THREE.MathUtils.degToRad(90);
+                    
+                    const modelBox = new THREE.Box3().setFromObject(model);
+                    const offset = modelBox.min.y;
+                    model.position.y -= offset;
+                    
+                    scene.add(model);
+                    
+                    animate();
+                },
+                function(xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
+                function(error) {
+                    console.error('Error loading model:', error);
+                }
+            );
+        }
+
+        function updateCameraRotation() {
+            if (!camera) return;
+            
+            const pov = panorama.getPov();
+            const heading = THREE.MathUtils.degToRad(pov.heading);
+            const pitch = THREE.MathUtils.degToRad(pov.pitch);
+            
+            camera.rotation.order = 'YXZ';
+            camera.rotation.y = -heading;
+            camera.rotation.x = pitch;
+        }
+
+        function updateModelPosition() {
+            if (!model) return;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (streetViewVisible) {
+                updateCameraRotation();
+                renderer.render(scene, camera);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.addEventListener('resize', onWindowResize);
+        window.onload = initMap;
+    </script>
+</body>
+</html>

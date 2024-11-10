@@ -1,0 +1,196 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent sliding */
+    width: 100%;
+    height: 100%;
+    font-family: 'Inter', sans-serif; /* Apply Inter font */
+}
+
+header {
+    background-color: white;
+    padding: 12px 20px; /* Adjust padding as needed to add 2px whitespace on top and bottom */
+    text-align: center;
+    display: flex;
+    justify-content: space-between; /* Adjust to space between elements */
+    align-items: center;
+    height: 6.46vh; /* Adjust the height to match the ratio (124/1920 * 100) */
+    width: 100%; /* Full width */
+    border-bottom: 0.7vh solid #1450F5; /* Adjust the height to match the ratio (5/1920 * 100) */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between; /* Adjust to space between elements */
+    align-items: center;
+    width: 100%;
+    max-width: 1920px; /* Maximum width for large screens */
+    margin: 0 auto; /* Center the header */
+    position: relative; /* Allow absolute positioning of logo */
+}
+
+.header .logo {
+    position: absolute;
+    left: 5px; /* Adjust the left position as needed */
+}
+
+.header .logo img {
+    height: 40px; /* Adjust the height to make the logo smaller */
+}
+
+.D-buttons-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1; /* Allow the container to grow and take available space */
+}
+
+.D-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(240,240,240,255); /* Smaller border for the frame */
+    background-color: rgba(240,240,240,255);
+    border-radius: 20px; /* Rounded corners for the frame */
+}
+
+.D-buttons a {
+    margin: 0 5px; /* Adjust the margin as needed */
+    text-decoration: none;
+    font-size: 20px; /* Set the font size to 20px */
+    padding: 10px 20px; /* Add padding to the buttons */
+    border-radius: 10px; /* Rounded corners for the buttons */
+    font-family: 'Inter', sans-serif; /* Apply Inter font */
+    font-weight: bold; /* Make the font bold */
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effect */
+}
+
+.D-buttons a:hover,
+.D-buttons a.active {
+    background-color: #1450F5;
+    border-radius: 20px; /* Rounded corners for the buttons */
+    color: white;
+}
+
+#button-2d:hover {
+    color: white;
+}
+
+.D-buttons a.active {
+    color: rgba(240,240,240,255);
+}
+
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    margin-right: 50px; /* Add 50px margin to the right side */
+}
+
+.dropbtn {
+    background-color: rgba(240,240,240,255);
+    color: #1450F5; /* Change font color to blue */
+    display: flex;
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center content horizontally */
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); /* Darker shadow */
+    padding: 10px 15px;
+    font-size: 16px; /* Set the font size to 16px */
+    font-weight: bold; /* Make the font bold */
+    border: 1px solid rgba(240,240,240,255); /* Match border with D-buttons */
+    width: auto; /* Adjust width to fit content */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide overflow text */
+    text-overflow: ellipsis; /* Add ellipsis for overflow text */
+    height: 50px; /* Set the height to match the buttons */
+    min-width: 150px; /* Set a minimum width to match the buttons */
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 10px;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex; /* Use flexbox to align icon and text */
+    align-items: center; /* Center items vertically */
+    border-radius: 10px;
+}
+
+.dropdown-content a span {
+    margin-right: 8px; /* Add some space between the icon and text */
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: #1450F5;
+    color: white; /* Change font color to white on hover */
+}
+
+/* Sidebar styles */
+.sidebar {
+    position: fixed;
+    top: 50%;
+    left: 2%; /* Add 2px gap from the left side */
+    transform: translateY(-50%); /* Center the sidebar vertically */
+    width: 46px; /* Adjust width to fit the buttons */
+    height: auto; /* Adjust height to fit the buttons */
+    background-color: white;
+    color: white;
+    display: flex;
+    flex-direction: column; /* Arrange buttons vertically */
+    justify-content: space-around; /* Space buttons evenly */
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    font-size: 20px;
+    font-family: 'Inter', sans-serif; /* Apply Inter font */
+    padding: 5px; /* Add padding to the top and bottom */
+}
+
+.sidebar button {
+    background: none;
+    border: none;
+    color: #a6a5a5;
+    cursor: pointer;
+    width: 100%; /* Make buttons take full width */
+    padding: 1%; /* Add padding to the buttons */
+}
+
+.sidebar button .material-icons-outlined {
+    font-size: 40px; /* Adjust icon size */
+}
+
+.sidebar button:hover .material-icons-outlined {
+    color: #1450F5; /* Change color on hover */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    header {
+        height: auto; /* Adjust height for smaller screens */
+        padding: 10px;
+    }
+
+    .D-buttons a {
+        padding: 5px 10px; /* Adjust padding for smaller screens */
+        margin: 0 5px; /* Adjust margin for smaller screens */
+    }
+}
